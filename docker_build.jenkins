@@ -6,7 +6,6 @@ pipeline {
     agent { 
         label 'master'
         }
-    
     options {
         buildDiscarder(logRotator(numToKeepStr: '10', artifactNumToKeepStr: '10'))
         timestamps()
@@ -18,7 +17,6 @@ pipeline {
                 dir ('docker/toolbox') {
                         sh 'docker build .'
                 }
-
             }
         }
     }
