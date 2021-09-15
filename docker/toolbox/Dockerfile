@@ -1,5 +1,7 @@
-FROM alpine
-RUN apk add --no-cache curl wget busybox-extras netcat-openbsd python py-pip
-RUN pip install awscli
-RUN apk --purge -v del py-pip
-CMD tail -f /dev/null
+FROM python:3.9.7-alpine
+LABEL maintainer="alekceyanatolievich@gmail.com"
+WORKDIR /app
+COPY . /app
+RUN pip install -r requirements.txt
+ENV FLASK_APP=diploma-app
+CMD ["flask", "run", "--host", "0.0.0.0"]
