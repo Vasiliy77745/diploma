@@ -13,10 +13,12 @@ pipeline {
     stages {
         stage("docker build and push") {
             steps {
-                docker.withRegistry('docker_hub_alexv77745') {
-                    def image = docker.build("alexv77745/diploma:${BUILD_ID}")
-                    image.push()
-                    image.push('latest')
+                script {
+                    docker.withRegistry('docker_hub_alexv77745') {
+                        def image = docker.build("alexv77745/diploma:${BUILD_ID}")
+                        image.push()
+                        image.push('latest')
+                    }
                 }
             }
         }
