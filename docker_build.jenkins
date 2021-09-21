@@ -15,7 +15,7 @@ pipeline {
             steps {
                 script {
                     dir("${pwd()}/docker/toolbox") {
-                        docker.withRegistry('https://docker.io','docker_hub_alexv77745') {
+                        docker.withRegistry('https://registry.hub.docker.com','docker_hub_alexv77745') {
                             def image = docker.build("alexv77745/diploma:${BUILD_ID}")
                             image.push()
                             image.push('latest')
