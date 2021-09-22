@@ -1,0 +1,91 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: "Myapp"
+Parameters: 
+  AppImage: 
+    Default: "alexv77745/diploma:latest"
+    Description: "docker image to deploy" 
+    Type: String
+
+Resources:
+  Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Join ['-',[!Sub '${AWS::StackName}', 'diploma-app-bucket']]
+  User:
+    Type: AWS::IAM::User
+    Properties:
+     UserName: !Join ['-',[!Sub '${AWS::StackName}', 'diploma-app-user']]
+  Policy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Join ['-',[!Sub '${AWS::StackName}', 'diploma-app-policy']]
+      PolicyDocument:
+        Statement:
+        - Effect: Allow
+          Action: ['*']
+          Resource: !Join ['', [!GetAtt [Bucket, Arn], '/*']]
+      Users: [!Ref 'User']
+  Key:
+    Type: AWS::IAM::AccessKey
+    Properties:
+      UserName: !Ref 'User'
+  InstanceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow ssh to client host
+      VpcId: "vpc-84b980fe"
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 80
+        ToPort: 80
+        CidrIp: 0.0.0.0/0
+      - IpProtocol: tcp
+        FromPort: 22
+        ToPort: 22
+        CidrIp: 0.0.0.0/0
+      SecurityGroupEgress:
+      - IpProtocol: -1
+        CidrIp: 0.0.0.0/0
+  AppInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: "ami-087c17d1fe0178315"
+      KeyName: "ec2-ssh"
+      InstanceType: t2.micro
+      SecurityGroupIds:
+      - Ref: InstanceSecurityGroup
+      UserData:
+        Fn::Base64:
+          !Sub |
+            #!/bin/bash -xe
+            yum update -y aws-cfn-bootstrap
+            
+            echo "APP_IMAGE=${AppImage}" >> /etc/environment 
+            export APP_IMAGE=${AppImage}
+            
+            echo "BUCKET_NAME=${Bucket}" >> /etc/environment
+            export BUCKET_NAME=${Bucket}
+
+            echo "API_KEY=${Key}" >> /etc/environment
+            export API_KEY=${Key}
+
+            echo "SECRET_KEY=${Key.SecretAccessKey}" >> /etc/environment
+            export SECRET_KEY=${Key.SecretAccessKey}
+
+            /opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource AppInstance --configsets setup --region ${AWS::Region}
+            /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource AppInstance --region ${AWS::Region}
+    Metadata:
+      AWS::CloudFormation::Init:
+        configSets:
+          setup:
+            - setup
+        setup:
+          commands:
+            a-dockerInstall:
+              command: 'sudo amazon-linux-extras install docker'
+            b-dockerEnable:
+              command: 'sudo service docker start'
+            c-addUserDockerGroup:
+              command: 'sudo usermod -a -G docker ec2-user'
+            d-RunApp:
+              command: 'docker run -d --restart always -e AWS_S3_BUCKET=$BUCKET_NAME -e AWS_ACCESS_KEY_ID=$API_KEY -e AWS_SECRET_ACCESS_KEY=$SECRET_KEY -p 80:5000 $APP_IMAGE'
