@@ -20,6 +20,17 @@ pipeline {
                         sh 'sleep 10'
                         def outputs = cfnUpdate(stack:params.stackName, file:'stack.yaml', timeoutInMinutes:10, pollInterval:5000, params:["AppImage=${params.DOCKER_IMAGE}"])
                         def url = "http://${outputs.AppDnsName}"
+                        def time = 0
+                        def status
+                        while( status != 200 && time < timeout) {
+                            sleep time: 10, unit: 'SECONDS'
+                            status = httpRequest(quiet: true, responseHandle: 'NONE', url: url, validResponseCodes: '100:599').status
+                            echo "App's URL returns: ${status}"
+                            time += 10
+                        }
+                        if (time >= timeout) {
+                            unstable 'Timeout waiting for status to be OK'
+                        } 
                         httpRequest url: url, timeout: 600
                         println "Application was deployed successfully! ${url}"
                     }
