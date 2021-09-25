@@ -84,10 +84,12 @@ Resources:
             a-dockerInstall:
               command: 'sudo amazon-linux-extras install docker'
             b-dockerEnable:
-              command: 'sudo service docker start'
-            c-addUserDockerGroup:
+              command: 'sudo systemctl start docker'
+            c-dockerEnable:
+              command: 'sudo systemctl enable docker'
+            d-addUserDockerGroup:
               command: 'sudo usermod -a -G docker ec2-user'
-            d-RunApp:
+            e-RunApp:
               command: 'docker run -d --restart always -e AWS_S3_BUCKET=$BUCKET_NAME -e AWS_ACCESS_KEY_ID=$API_KEY -e AWS_SECRET_ACCESS_KEY=$SECRET_KEY -p 80:5000 $APP_IMAGE'
 Outputs:
   AppDnsName:
