@@ -20,7 +20,7 @@ pipeline {
                         sh 'sleep 10'
                         def outputs = cfnUpdate(stack:params.stackName, file:'stack.yaml', timeoutInMinutes:10, pollInterval:5000, params:["AppImage=${params.DOCKER_IMAGE}"])
                         def url = "http://${outputs.AppDnsName}"
-                        timeout(time: 5, unit: 'MINUTES') {
+                        timeout(10) {
                             httpRequest url: url
                         }
                         
