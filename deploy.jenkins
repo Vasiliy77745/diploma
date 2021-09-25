@@ -15,8 +15,10 @@ pipeline {
 
                         sh 'aws cloudformation list-stacks --stack-status-filter CREATE_COMPLETE'
                         sh 'sleep 10'
-                        sh "aws cloudformation create-stack  --stack-name ${params.stackName} --region us-east-1 --template-body file://stack.yaml --capabilities CAPABILITY_NAMED_IAM"
-
+                        
+                        //sh "aws cloudformation create-stack  --stack-name ${} --region us-east-1 --template-body file://stack.yaml --capabilities CAPABILITY_NAMED_IAM"
+                        def outputs = cfnUpdate(stack:params.stackName, file:'stack.yaml', timeoutInMinutes:10, pollInterval:5000)
+                        println outputs
                     }
                 }
             }   
