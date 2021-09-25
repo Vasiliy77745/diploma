@@ -4,8 +4,11 @@ pipeline {
     }
     
     parameters {
-      string(name: 'stackName', defaultValue: 'myapp-xxx', description: '')
-      string(name: 'appImage', defaultValue: 'alexv77745/diploma:latest', description: '')
+      string(name: 'stackName', defaultValue: 'myapp-xxx', description: 'How to name stack')
+      imageTag(name: 'DOCKER_IMAGE', description: 'Which image tag to deploy',
+             image: 'alexv77745/diploma', defaultTag: 'latest',
+             registry: 'https://registry-1.docker.io')
+      string(name: 'appImage', defaultValue: ':latest', description: '')
     }
     
     stages {
@@ -14,7 +17,7 @@ pipeline {
                 script{
                     withAWS(credentials: 'vah_aws', region: 'us-east-1') {
                         sh 'sleep 10'
-                        def outputs = cfnUpdate(stack:params.stackName, file:'stack.yaml', timeoutInMinutes:10, pollInterval:5000, params:["AppImage=${params.appImage}"])
+                        def outputs = cfnUpdate(stack:params.stackName, file:'stack.yaml', timeoutInMinutes:10, pollInterval:5000, params:["AppImage=${params.DOCKER_IMAGE}"])
                         println "Application was deployed successfully! http://${outputs.AppDnsName}"
                     }
                 }
