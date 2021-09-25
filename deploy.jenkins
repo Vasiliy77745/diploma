@@ -1,3 +1,5 @@
+def timeout = 300
+
 pipeline {
     agent {
         label 'master'
@@ -11,13 +13,18 @@ pipeline {
     }
     
     stages {
-        stage('aws') {
+        stage('Deploy') {
             steps {
                 script{
                     withAWS(credentials: 'vah_aws', region: 'us-east-1') {
                         sh 'sleep 10'
                         def outputs = cfnUpdate(stack:params.stackName, file:'stack.yaml', timeoutInMinutes:10, pollInterval:5000, params:["AppImage=${params.DOCKER_IMAGE}"])
-                        println "Application was deployed successfully! http://${outputs.AppDnsName}"
+                        def url = "http://${outputs.AppDnsName}"
+                        timeout(time: 5, unit: 'MINUTES') {
+                            httpRequest url: url
+                        }
+                        
+                        println "Application was deployed successfully! ${url}"
                     }
                 }
             }   
