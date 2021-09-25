@@ -8,7 +8,6 @@ pipeline {
       imageTag(name: 'DOCKER_IMAGE', description: 'Which image tag to deploy',
              image: 'alexv77745/diploma', defaultTag: 'latest',
              registry: 'https://registry-1.docker.io')
-      string(name: 'appImage', defaultValue: ':latest', description: '')
     }
     
     stages {
