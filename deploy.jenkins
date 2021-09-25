@@ -5,6 +5,7 @@ pipeline {
     
     parameters {
       string(name: 'stackName', defaultValue: 'myapp-xxx', description: '')
+      string(name: 'appImage', defaultValue: 'alexv77745/diploma:latest', description: '')
     }
     
     stages {
@@ -12,13 +13,9 @@ pipeline {
             steps {
                 script{
                     withAWS(credentials: 'vah_aws', region: 'us-east-1') {
-
-                        sh 'aws cloudformation list-stacks --stack-status-filter CREATE_COMPLETE'
                         sh 'sleep 10'
-                        
-                        //sh "aws cloudformation create-stack  --stack-name ${} --region us-east-1 --template-body file://stack.yaml --capabilities CAPABILITY_NAMED_IAM"
-                        def outputs = cfnUpdate(stack:params.stackName, file:'stack.yaml', timeoutInMinutes:10, pollInterval:5000)
-                        println outputs
+                        def outputs = cfnUpdate(stack:params.stackName, file:'stack.yaml', timeoutInMinutes:10, pollInterval:5000, params:["AppImage=${params.appImage}"])
+                        println "Application was deployed successfully! http://${outputs.AppDnsName}"
                     }
                 }
             }   
