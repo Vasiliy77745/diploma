@@ -89,3 +89,7 @@ Resources:
               command: 'sudo usermod -a -G docker ec2-user'
             d-RunApp:
               command: 'docker run -d --restart always -e AWS_S3_BUCKET=$BUCKET_NAME -e AWS_ACCESS_KEY_ID=$API_KEY -e AWS_SECRET_ACCESS_KEY=$SECRET_KEY -p 80:5000 $APP_IMAGE'
+Outputs:
+  AppDnsName:
+    Description: DNS name of the app
+    Value: !GetAtt [AppInstance, PublicDnsName]
