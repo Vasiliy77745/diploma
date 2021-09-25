@@ -33,7 +33,7 @@ Resources:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Allow ssh to client host
-      VpcId: "vpc-84b980fe"
+      VpcId: "vpc-4f2f4b32"
       SecurityGroupIngress:
       - IpProtocol: tcp
         FromPort: 80
@@ -50,7 +50,7 @@ Resources:
     Type: AWS::EC2::Instance
     Properties:
       ImageId: "ami-087c17d1fe0178315"
-      KeyName: "ec2-ssh"
+      KeyName: "aws1"
       InstanceType: t2.micro
       SecurityGroupIds:
       - Ref: InstanceSecurityGroup
