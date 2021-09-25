@@ -1,12 +1,8 @@
-#!groovy
-// Run docker build
-properties([disableConcurrentBuilds()])
-
 pipeline {
     agent { 
         label 'master'
         }
-    triggers { pollSCM('* * * * *') }
+    triggers { pollSCM('*/15 * * * *') }
     options {
         timestamps()
     }
@@ -16,9 +12,7 @@ pipeline {
                 script {
                     dir("${pwd()}/docker/toolbox") {
                         docker.withRegistry('https://registry.hub.docker.com','docker_hub_alexv77745') {
-                            def sha = env.GIT_COMMIT.substring(0,8)
-                            sh 'printenv'
-                            def image = docker.build("alexv77745/diploma:${env.GIT_BRANCH}-${sha}")
+                            def image = docker.build("alexv77745/diploma:${env.GIT_TAG}")
                             image.push()
                             image.push('latest')
                         }
