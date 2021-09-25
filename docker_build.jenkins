@@ -12,6 +12,7 @@ pipeline {
                 script {
                     dir("${pwd()}/docker/toolbox") {
                         docker.withRegistry('https://registry.hub.docker.com','docker_hub_alexv77745') {
+                            sh 'printenv'
                             def image = docker.build("alexv77745/diploma:${env.GIT_TAG}")
                             image.push()
                             image.push('latest')
