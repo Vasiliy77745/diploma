@@ -1,0 +1,25 @@
+pipeline {
+    agent {
+        label 'master'
+    }
+    
+    parameters {
+      string(name: 'stackName', defaultValue: 'myapp-xxx', description: '')
+    }
+    
+    stages {
+        stage('aws') {
+            steps {
+                script{
+                    withAWS(credentials: 'vah_aws', region: 'us-east-1') {
+
+                        sh 'aws cloudformation list-stacks --stack-status-filter CREATE_COMPLETE'
+                        sh 'sleep 10'
+                        sh "aws cloudformation create-stack  --stack-name ${params.stackName} --region us-east-1 --template-body file://stack.yaml --capabilities CAPABILITY_NAMED_IAM"
+
+                    }
+                }
+            }   
+        }
+    }
+}
