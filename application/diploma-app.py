@@ -4,12 +4,13 @@ import hashlib
 import gzip
 import os
 import logging
+import json
 
 app = Flask(__name__)
 bucket = os.environ['AWS_S3_BUCKET']
 s3 = boto3.client('s3')
 allowedTypes = ['image/jpeg', 'image/x-png', 'image/png', 'image/gif']
-sizeLimit = 4 * 1024 * 1024
+sizeLimit = 3 * 1024 * 1024
 
 def getFilenameByUsername(username: str) -> str:
     return(hashlib.md5(username.encode()).hexdigest())
@@ -40,10 +41,14 @@ def index():
 def create():
   mimeType = request.files.get('picture').content_type
   fileSize = request.files.get('picture').content_length
+  msgType = {'status': 'error', 'message': 'Wrong image type'}
+  msgSize = {'status': 'error', 'message': 'Picture size too large'}
+  msgUplErr = {'status': 'error', 'message': 'Upload error'}
+  msgUplOk = {'status': 'ok', 'message': 'Picture uploaded to s3 bucket'}
   if mimeType not in allowedTypes:
-    return f'<h2>Wrong image type</h2><h3>See allowed types of images</h3><li>{allowedTypes}</li>', 500
+    return json.dumps(msgType), 500
   if fileSize > sizeLimit:
-    return 'Picture size too large', 500
+    return json.dumps(msgSize), 500
   try:
     s3.upload_fileobj(
       Fileobj = request.files.get('picture'), 
@@ -55,8 +60,8 @@ def create():
     )
   except botocore.exceptions.ClientError as e:
     logging.error(e)
-    return "Upload error", 500
-  return f"Picture uploaded to s3 bucket storage with name {bucket}"
+    return json.dumps(msgUplErr), 500
+  return json.dumps(msgUplOk)
     
 @app.route('/get', methods=['POST'])
 def get():

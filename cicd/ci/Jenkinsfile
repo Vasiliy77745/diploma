@@ -1,3 +1,5 @@
+def image
+
 pipeline {
     agent { 
         label 'master'
@@ -7,13 +9,24 @@ pipeline {
         timestamps()
     }
     stages {
-        stage("docker build and push") {
+        stage("docker build") {
             steps {
                 script {
-                    dir("${pwd()}/docker/toolbox") {
-                        docker.withRegistry('https://registry.hub.docker.com','docker_hub_alexv77745') {
-                            sh 'printenv'
-                            def image = docker.build("alexv77745/diploma:${env.GIT_BRANCH}-${env.BUILD_ID}")
+                    dir("${pwd()}/application") {
+                        //pylint???
+                        docker.withRegistry('https://registry.hub.docker.com','docker_hub_alexv77745') {                            
+                            //def image = docker.build("alexv77745/diploma:${env.GIT_BRANCH}-${env.BUILD_ID}")
+                            def sha = env.GIT_COMMIT.substring(0,8)
+                            image = docker.build("alexv77745/diploma:${env.GIT_BRANCH}-${sha}")
+                        }
+                    }
+                }
+            }
+        }    
+        stage("docker push") {
+            steps {
+                script {
+
                             image.push()
                             image.push('latest')
                         }
