@@ -14,7 +14,7 @@ Resources:
   User:
     Type: AWS::IAM::User
     Properties:
-     UserName: !Join ['-',[!Sub '${AWS::StackName}', 'diploma-app-user']]
+      UserName: !Join ['-',[!Sub '${AWS::StackName}', 'diploma-app-user']]
   Policy:
     Type: AWS::IAM::Policy
     Properties:
