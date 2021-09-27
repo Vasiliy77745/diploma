@@ -14,7 +14,7 @@ pipeline {
                 script {
                     dir("${pwd()}/application") {
                         //pylint???
-                        //docker.withRegistry('https://registry.hub.docker.com','docker_hub_alexv77745') {                            
+                        docker.withRegistry('https://registry.hub.docker.com','docker_hub_alexv77745') {                            
                             //def image = docker.build("alexv77745/diploma:${env.GIT_BRANCH}-${env.BUILD_ID}")
                             def sha = env.GIT_COMMIT.substring(0,8)
                             image = docker.build("alexv77745/diploma:${env.GIT_BRANCH}-${sha}")
