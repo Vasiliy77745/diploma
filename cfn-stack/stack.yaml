@@ -167,7 +167,7 @@ Resources:
               command: 'docker rm $(docker ps -a -q) || exit 0'
             g-RunApp:
               command: !Join ['', ['docker run -d --restart always -e AWS_S3_BUCKET=', !Ref 'Bucket', ' -p 80:5000 ', !Ref 'AppImage']]
-#Outputs:
- # AppDnsName:
-  #  Description: DNS name of the app
-   # Value: !GetAtt [AppInstance, PublicDnsName]
+Outputs:
+  AppDnsName:
+    Description: DNS name of the app
+    Value: !GetAtt [MyLoadBalancer, DNSName]
