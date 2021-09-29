@@ -19,7 +19,7 @@ pipeline {
                     withAWS(credentials: 'vah_aws', region: 'us-east-1') {
                         sh 'sleep 10'
                         def outputs = cfnUpdate(stack:params.stackName, file:'cfn-stack/stack.yaml', timeoutInMinutes:10, pollInterval:5000, params:["AppImage=${params.DOCKER_IMAGE}"])
-                        def url = "http://${outputs.AppDnsName}"
+                        def url = "http://${outputs.AppDnsName}/healthcheck"
                         def time = 0
                         def status
                         while( status != 200 && time < timeout) {
