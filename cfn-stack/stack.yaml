@@ -7,14 +7,42 @@ Parameters:
     Type: String
 
 Resources:
+  #==============VPC==============
+  #  Vpc:
+  #    Type: AWS::EC2::VPC
+  #    Properties: 
+  #      CidrBlock: '10.0.0.0/16'
+  #      EnableDnsHostnames: true
+  #      EnableDnsSupport: true
+  #  Subnet:
+  #    Type: AWS::EC2::Subnet
+  #    Properties:
+  #      MapPublicIpOnLaunch: true
+  #      VpcId:
+  #        Ref: Vpc
+  #      CidrBlock: 10.0.0.0/24
+  #      AvailabilityZone: !Select [ 0, "Fn::GetAZs": { Ref: "AWS::Region" } ]
+  #==============BUCKET==============
   Bucket:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: !Join ['-',[!Sub '${AWS::StackName}', 'diploma-app-bucket']]
-  User:
-    Type: AWS::IAM::User
-    Properties:
-      UserName: !Join ['-',[!Sub '${AWS::StackName}', 'diploma-app-user']]
+  #==============ROLE==============
+  Role: 
+    Type: "AWS::IAM::Role"
+    Properties: 
+      AssumeRolePolicyDocument: 
+        Version: "2012-10-17"
+        Statement: 
+          - 
+            Effect: "Allow"
+            Principal: 
+              Service: 
+                - "ec2.amazonaws.com"
+            Action: 
+              - "sts:AssumeRole"
+      Path: "/"
+  #==============POLICY==============
   Policy:
     Type: AWS::IAM::Policy
     Properties:
@@ -22,18 +50,29 @@ Resources:
       PolicyDocument:
         Statement:
         - Effect: Allow
-          Action: ['*']
-          Resource: !Join ['', [!GetAtt [Bucket, Arn], '/*']]
-      Users: [!Ref 'User']
-  Key:
-    Type: AWS::IAM::AccessKey
-    Properties:
-      UserName: !Ref 'User'
+          Action: 
+          - "s3:PutObject"
+          - "s3:GetObject"
+          - "s3:ListBucket"
+          - "s3:DeleteObject"
+          Resource:
+          - !Join ['', [!GetAtt [Bucket, Arn], '/*']]
+          - !GetAtt [Bucket, Arn]
+      Roles: [!Ref 'Role']
+  #==============INSTANCE PROFILE==============
+  InstanceProfile: 
+    Type: AWS::IAM::InstanceProfile
+    Properties: 
+      Path: "/"
+      Roles: 
+        - Ref: "Role" 
+  #==============SECURITY GROUP==============
   InstanceSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Allow ssh to client host
-      VpcId: "vpc-4f2f4b32"
+      #VpcId: !Ref 'Vpc'
+      VpcId: 'vpc-4f2f4b32'
       SecurityGroupIngress:
       - IpProtocol: tcp
         FromPort: 80
@@ -46,32 +85,54 @@ Resources:
       SecurityGroupEgress:
       - IpProtocol: -1
         CidrIp: 0.0.0.0/0
+
+  #==============ELASTIC LOAD BALANCING============
+  MyLoadBalancer:
+    Type: AWS::ElasticLoadBalancing::LoadBalancer
+    Properties:
+      AvailabilityZones:
+        - "us-east-1a"
+      Listeners:
+        - LoadBalancerPort: '80'
+          InstancePort: '80'
+          Protocol: HTTP
+
+  #===============AUTO SCALING LAUNCH GROUP===========
+  myServerGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      AvailabilityZones: 
+        - "us-east-1a"
+    #VPCZoneIdentifier:
+     # - !Ref myPublicSubnet1
+      #- !Ref myPublicSubnet2
+      LaunchConfigurationName: !Ref AppInstance
+      MinSize: '1'
+      MaxSize: '1'
+      HealthCheckGracePeriod: 300
+      MaxInstanceLifetime: 2592000
+      LoadBalancerNames:
+      - !Ref "MyLoadBalancer"
+
+  
+  #================EC2 INSTANCE==============
   AppInstance:
-    Type: AWS::EC2::Instance
+    Type: AWS::AutoScaling::LaunchConfiguration
     Properties:
       ImageId: "ami-087c17d1fe0178315"
+      IamInstanceProfile: 
+        Ref: 'InstanceProfile'
       KeyName: "aws1"
       InstanceType: t2.micro
-      SecurityGroupIds:
+      SecurityGroups:
       - Ref: InstanceSecurityGroup
+      #SubnetId:
+      #  Ref: 'Subnet'
       UserData:
         Fn::Base64:
           !Sub |
             #!/bin/bash -xe
             yum update -y aws-cfn-bootstrap
-            
-            echo "APP_IMAGE=${AppImage}" >> /etc/environment 
-            export APP_IMAGE=${AppImage}
-            
-            echo "BUCKET_NAME=${Bucket}" >> /etc/environment
-            export BUCKET_NAME=${Bucket}
-
-            echo "API_KEY=${Key}" >> /etc/environment
-            export API_KEY=${Key}
-
-            echo "SECRET_KEY=${Key.SecretAccessKey}" >> /etc/environment
-            export SECRET_KEY=${Key.SecretAccessKey}
-
             /opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource AppInstance --configsets setup --region ${AWS::Region}
             /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource AppInstance --region ${AWS::Region}
     Metadata:
@@ -80,6 +141,17 @@ Resources:
           setup:
             - setup
         setup:
+          files:
+            /etc/cfn/hooks.d/cfn-auto-reloader.conf:
+              content: !Sub |
+                [cfn-auto-reloader-hook]
+                triggers=post.update
+                path=Resources.AppInstance.Metadata.AWS::CloudFormation::Init
+                action=/opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource AppInstance --configsets setup --region ${AWS::Region}
+                runas=root
+              mode: "000400"
+              owner: "root"
+              group: "root"
           commands:
             a-dockerInstall:
               command: 'sudo amazon-linux-extras install docker'
@@ -89,9 +161,13 @@ Resources:
               command: 'sudo systemctl enable docker'
             d-addUserDockerGroup:
               command: 'sudo usermod -a -G docker ec2-user'
-            e-RunApp:
-              command: 'docker run -d --restart always -e AWS_S3_BUCKET=$BUCKET_NAME -e AWS_ACCESS_KEY_ID=$API_KEY -e AWS_SECRET_ACCESS_KEY=$SECRET_KEY -p 80:5000 $APP_IMAGE'
-Outputs:
-  AppDnsName:
-    Description: DNS name of the app
-    Value: !GetAtt [AppInstance, PublicDnsName]
+            e-stopOld:
+              command: 'docker stop $(docker ps -q) || exit 0'
+            f-deleteOld:
+              command: 'docker rm $(docker ps -a -q) || exit 0'
+            g-RunApp:
+              command: !Join ['', ['docker run -d --restart always -e AWS_S3_BUCKET=', !Ref 'Bucket', ' -p 80:5000 ', !Ref 'AppImage']]
+#Outputs:
+ # AppDnsName:
+  #  Description: DNS name of the app
+   # Value: !GetAtt [AppInstance, PublicDnsName]

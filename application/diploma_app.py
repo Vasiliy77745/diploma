@@ -51,13 +51,11 @@ def get(username):
         logging.error(err)
         return 'File get error', 500
     else:
-    #content = gzip.compress((picture['Body'].read()))
         content = picture['Body'].read()
         response = make_response(content)
         mime_type = picture['ResponseMetadata']['HTTPHeaders']['content-type']
         response.headers.set('Content-Type', mime_type)
         response.headers.set('Content-Length', len(content))
-        #response.headers['Content-Encoding'] = 'gzip'
         return response
 
 @APP.route('/delete', methods=['POST'])
@@ -69,15 +67,15 @@ def delete():
         )
     except botocore.exceptions.ClientError as err:
         if err.response['Error']['Code'] == '404':
-            return 'Username not found', 404
+            return json.dumps({'status': 'error', 'message': 'Username not found'}), 404
         logging.error(err)
-        return 'Picture deleting error', 500
+        return json.dumps({'status': 'error', 'message': 'Picture deleting error'}), 500
     else:
         S3.delete_object(
             Bucket=BUCKET,
             Key=get_file_name_by_username(request.form['username'])
         )
-        return 'Picture deleted'
+        return json.dumps({'status': 'error', 'message': 'Picture deleted'})
 
 @APP.route('/healthcheck', methods=['GET'])
 def healthcheck():
