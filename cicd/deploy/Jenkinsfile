@@ -6,7 +6,7 @@ pipeline {
     }
     
     parameters {
-      string(name: 'stackName', defaultValue: 'myapp-xxx', description: 'How to name stack')
+      string(name: 'stackName', defaultValue: 'myapp-dev', description: 'How to name stack')
       imageTag(name: 'DOCKER_IMAGE', description: 'Which image tag to deploy',
              image: 'alexv77745/diploma', defaultTag: 'latest',
              registry: 'https://registry-1.docker.io')
@@ -16,7 +16,7 @@ pipeline {
         stage('Deploy') {
             steps {
                 script{
-                    withAWS(credentials: 'vah_aws', region: 'us-east-1') {
+                    withAWS(credentials: 'aws_admin', region: 'us-east-1') {
                         sh 'sleep 10'
                         def outputs = cfnUpdate(stack:params.stackName, file:'cfn-stack/stack.yaml', timeoutInMinutes:10, pollInterval:5000, params:["AppImage=${params.DOCKER_IMAGE}"])
                         def url = "http://${outputs.AppDnsName}/healthcheck"
@@ -31,7 +31,6 @@ pipeline {
                         if (time >= timeout) {
                             unstable 'Timeout waiting for status to be OK'
                         } 
-                        httpRequest url: url, timeout: 600
                         println "Application was deployed successfully! ${url}"
                     }
                 }

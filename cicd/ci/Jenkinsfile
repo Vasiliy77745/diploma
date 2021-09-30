@@ -31,8 +31,18 @@ pipeline {
                 script {                      
                     image.push()
                     image.push('latest')
+                    println image.properties
                 }
             }
-        }    
+        } 
+        stage("docker push") {
+            steps {
+                    //build job: 'Deploy_Job', parameters: [
+                    //    [$class: 'StringParameterValue', name: 'stackName', value: 'myapp-dev'],
+                    //    [$class: 'StringParameterValue', name: 'DOCKER_IMAGE', value: systemname]
+                    //]
+                    echo 'test'
+            }    
+        }      
     }
 }    
