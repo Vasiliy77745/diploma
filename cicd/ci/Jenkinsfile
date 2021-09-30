@@ -1,5 +1,5 @@
 def image
-
+def imageName
 pipeline {
     agent { 
         label 'master'
@@ -20,7 +20,8 @@ pipeline {
                     dir("${pwd()}/application") {
                         docker.withRegistry('https://registry.hub.docker.com','docker_hub_alexv77745') {                            
                             def sha = env.GIT_COMMIT.substring(0,8)
-                            image = docker.build("alexv77745/diploma:${env.GIT_BRANCH}-${sha}")
+                            def imageName = "alexv77745/diploma:${env.GIT_BRANCH}-${sha}"
+                            image = docker.build(imageName)
                         }
                     }
                 }
@@ -31,17 +32,15 @@ pipeline {
                 script {                      
                     image.push()
                     image.push('latest')
-                    println image
                 }
             }
         } 
         stage("trigger deploy") {
             steps {
-                    //build job: 'Deploy_Job', parameters: [
-                    //    [$class: 'StringParameterValue', name: 'stackName', value: 'myapp-dev'],
-                    //    [$class: 'StringParameterValue', name: 'DOCKER_IMAGE', value: systemname]
-                    //]
-                    echo 'test'
+                    build job: 'Deploy_Job', parameters: [
+                        [$class: 'StringParameterValue', name: 'stackName', value: 'myapp-dev'],
+                        [$class: 'StringParameterValue', name: 'DOCKER_IMAGE', value: imageName]
+                    ]
             }    
         }      
     }
