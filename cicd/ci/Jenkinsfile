@@ -20,7 +20,7 @@ pipeline {
                     dir("${pwd()}/application") {
                         docker.withRegistry('https://registry.hub.docker.com','docker_hub_alexv77745') {                            
                             def sha = env.GIT_COMMIT.substring(0,8)
-                            def imageName = "alexv77745/diploma:${env.GIT_BRANCH}-${sha}"
+                            imageName = "alexv77745/diploma:${env.GIT_BRANCH}-${sha}"
                             image = docker.build(imageName)
                         }
                     }
