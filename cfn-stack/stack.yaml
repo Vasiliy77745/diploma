@@ -141,17 +141,17 @@ Resources:
           setup:
             - setup
         setup:
-          files:
-            /etc/cfn/hooks.d/cfn-auto-reloader.conf:
-              content: !Sub |
-                [cfn-auto-reloader-hook]
-                triggers=post.update
-                path=Resources.AppInstance.Metadata.AWS::CloudFormation::Init
-                action=/opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource AppInstance --configsets setup --region ${AWS::Region}
-                runas=root
-              mode: "000400"
-              owner: "root"
-              group: "root"
+          #files:
+           # /etc/cfn/hooks.d/cfn-auto-reloader.conf:
+            #  content: !Sub |
+             #   [cfn-auto-reloader-hook]
+              #  triggers=post.update
+               # path=Resources.AppInstance.Metadata.AWS::CloudFormation::Init
+                #action=/opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource AppInstance --configsets setup --region ${AWS::Region}
+                #runas=root
+              #mode: "000400"
+              #owner: "root"
+              #group: "root"
           commands:
             a-dockerInstall:
               command: 'sudo amazon-linux-extras install docker'
