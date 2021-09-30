@@ -35,7 +35,7 @@ pipeline {
                 }
             }
         } 
-        stage("docker push") {
+        stage("trigger deploy") {
             steps {
                     //build job: 'Deploy_Job', parameters: [
                     //    [$class: 'StringParameterValue', name: 'stackName', value: 'myapp-dev'],
