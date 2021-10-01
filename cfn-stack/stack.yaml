@@ -100,12 +100,13 @@ Resources:
   #===============AUTO SCALING LAUNCH GROUP===========
   myServerGroup:
     Type: AWS::AutoScaling::AutoScalingGroup
+    UpdatePolicy:
+      AutoScalingReplacingUpdate:
+        WillReplace: 'true'
     Properties:
       AvailabilityZones: 
         - "us-east-1a"
-    UpdatePolicy:
-      AutoScalingReplacingUpdate:
-        WillReplace: 'true'    
+       
     #VPCZoneIdentifier:
      # - !Ref myPublicSubnet1
       #- !Ref myPublicSubnet2
