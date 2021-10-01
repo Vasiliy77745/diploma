@@ -103,6 +103,9 @@ Resources:
     Properties:
       AvailabilityZones: 
         - "us-east-1a"
+    UpdatePolicy:
+      AutoScalingReplacingUpdate:
+        WillReplace: 'true'    
     #VPCZoneIdentifier:
      # - !Ref myPublicSubnet1
       #- !Ref myPublicSubnet2
