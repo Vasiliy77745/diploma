@@ -7,27 +7,13 @@ Parameters:
     Type: String
 
 Resources:
-  #==============VPC==============
-  #  Vpc:
-  #    Type: AWS::EC2::VPC
-  #    Properties: 
-  #      CidrBlock: '10.0.0.0/16'
-  #      EnableDnsHostnames: true
-  #      EnableDnsSupport: true
-  #  Subnet:
-  #    Type: AWS::EC2::Subnet
-  #    Properties:
-  #      MapPublicIpOnLaunch: true
-  #      VpcId:
-  #        Ref: Vpc
-  #      CidrBlock: 10.0.0.0/24
-  #      AvailabilityZone: !Select [ 0, "Fn::GetAZs": { Ref: "AWS::Region" } ]
   #==============BUCKET==============
   Bucket:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: !Join ['-',[!Sub '${AWS::StackName}', 'diploma-app-bucket']]
-  #==============ROLE==============
+
+  #==============ROLE================
   Role: 
     Type: "AWS::IAM::Role"
     Properties: 
@@ -42,6 +28,7 @@ Resources:
             Action: 
               - "sts:AssumeRole"
       Path: "/"
+
   #==============POLICY==============
   Policy:
     Type: AWS::IAM::Policy
@@ -59,19 +46,20 @@ Resources:
           - !Join ['', [!GetAtt [Bucket, Arn], '/*']]
           - !GetAtt [Bucket, Arn]
       Roles: [!Ref 'Role']
+
   #==============INSTANCE PROFILE==============
   InstanceProfile: 
     Type: AWS::IAM::InstanceProfile
     Properties: 
       Path: "/"
       Roles: 
-        - Ref: "Role" 
+        - Ref: "Role"
+         
   #==============SECURITY GROUP==============
   InstanceSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Allow ssh to client host
-      #VpcId: !Ref 'Vpc'
       VpcId: 'vpc-4f2f4b32'
       SecurityGroupIngress:
       - IpProtocol: tcp
@@ -106,10 +94,6 @@ Resources:
     Properties:
       AvailabilityZones: 
         - "us-east-1a"
-       
-    #VPCZoneIdentifier:
-     # - !Ref myPublicSubnet1
-      #- !Ref myPublicSubnet2
       LaunchConfigurationName: !Ref AppInstance
       MinSize: '1'
       MaxSize: '1'
@@ -118,7 +102,6 @@ Resources:
       LoadBalancerNames:
       - !Ref "MyLoadBalancer"
 
-  
   #================EC2 INSTANCE==============
   AppInstance:
     Type: AWS::AutoScaling::LaunchConfiguration
@@ -130,8 +113,6 @@ Resources:
       InstanceType: t2.micro
       SecurityGroups:
       - Ref: InstanceSecurityGroup
-      #SubnetId:
-      #  Ref: 'Subnet'
       UserData:
         Fn::Base64:
           !Sub |
@@ -146,31 +127,16 @@ Resources:
           setup:
             - setup
         setup:
-          #files:
-           # /etc/cfn/hooks.d/cfn-auto-reloader.conf:
-            #  content: !Sub |
-             #   [cfn-auto-reloader-hook]
-              #  triggers=post.update
-               # path=Resources.AppInstance.Metadata.AWS::CloudFormation::Init
-                #action=/opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource AppInstance --configsets setup --region ${AWS::Region}
-                #runas=root
-              #mode: "000400"
-              #owner: "root"
-              #group: "root"
           commands:
-            a-dockerInstall:
+            0-dockerInstall:
               command: 'sudo amazon-linux-extras install docker'
-            b-dockerEnable:
+            1-dockerEnable:
               command: 'sudo systemctl start docker'
-            c-dockerEnable:
+            2-dockerEnable:
               command: 'sudo systemctl enable docker'
-            d-addUserDockerGroup:
+            3-addUserDockerGroup:
               command: 'sudo usermod -a -G docker ec2-user'
-            e-stopOld:
-              command: 'docker stop $(docker ps -q) || exit 0'
-            f-deleteOld:
-              command: 'docker rm $(docker ps -a -q) || exit 0'
-            g-RunApp:
+            4-RunApp:
               command: !Join ['', ['docker run -d --restart always -e AWS_S3_BUCKET=', !Ref 'Bucket', ' -p 80:5000 ', !Ref 'AppImage']]
 Outputs:
   AppDnsName:
