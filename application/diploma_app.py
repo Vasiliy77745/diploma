@@ -75,7 +75,7 @@ def delete():
             Bucket=BUCKET,
             Key=get_file_name_by_username(request.form['username'])
         )
-        return json.dumps({'status': 'error', 'message': 'Picture deleted'})
+        return json.dumps({'status': 'ok', 'message': 'Picture deleted'})
 
 @APP.route('/healthcheck', methods=['GET'])
 def healthcheck():
