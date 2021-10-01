@@ -136,6 +136,7 @@ Resources:
         Fn::Base64:
           !Sub |
             #!/bin/bash -xe
+            echo ${AppImage}
             yum update -y aws-cfn-bootstrap
             /opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource AppInstance --configsets setup --region ${AWS::Region}
             /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource AppInstance --region ${AWS::Region}
