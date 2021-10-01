@@ -11,7 +11,7 @@ APP = Flask(__name__)
 BUCKET = os.environ['AWS_S3_BUCKET']
 S3 = boto3.client('s3')
 ALLOWED_TYPES = ['image/jpeg', 'image/x-png', 'image/png', 'image/gif']
-SIZE_LIMIT = 3 * 1024 * 1024
+SIZE_LIMIT = 5 * 1024 * 1024
 
 def get_file_name_by_username(username: str) -> str:
     return hashlib.md5(username.encode()).hexdigest()
