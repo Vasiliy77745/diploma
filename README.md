@@ -5,7 +5,7 @@ For use this application you can try this:
 Just clone this repository 
 https://github.com/Vasiliy77745/diploma.git  on your computer
 
-##LOCAL RUNNING
+## LOCAL RUNNING
 
 This application listen :5000 port on localhost
 
@@ -19,26 +19,26 @@ you also need AWS credentials:
 
 
 Export to env your bucket name:
-    export AWS_S3_BUCKET="your bucket name"
+    export AWS_S3_BUCKET=your bucket name
     
 Try check application and upload/get or delete file by username using next endpoints:
 
-####check:
+#### check:
     
     curl 127.0.0.1:5000/healthcheck
-####upload:
+#### upload:
 
     curl -F username=testuser -F picture=@test.jpg 127.0.0.1:5000/create
     
-####get and show:
+#### get and show:
 
     curl -o download.jpg 127.0.0.1:5000/get/testuser
     xdg-open download.jpg
-####delete:
+#### delete:
 
     curl -F username=testuser 127.0.0.1:5000/delete
     
-###DOCKER
+### DOCKER
 
  You also can try to run this app in docker container locally
  
@@ -51,8 +51,9 @@ Try check application and upload/get or delete file by username using next endpo
 
     Use previous commands for using application
 
-##RUNNING ON A EC2 INSTANCE
-###CLOUDFORMATION
+## RUNNING ON A EC2 INSTANCE
+
+### CLOUDFORMATION
 There is a ability running this app from a stack on AWS services
 
 This repo included the file stack.yaml
@@ -61,7 +62,7 @@ Run this stack with:
 
     aws cloudformation create-stack --stack-name myapp-dev --region us-east-1 --template-body file://stack.yaml --capabilities CAPABILITY_NAMED_IAM
     
-###JENKINS
+### JENKINS
 I also added Jenkinsfiles in this repo for automatically build and deploy  application
 
 Simply make two different jobs on Jenkins using CI and CD Jenkinsfiles
