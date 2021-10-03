@@ -1,6 +1,8 @@
 # DIPLOMA APPLICATION
 
-For use this application you can try this:
+  This is a python application that allows to upload profile pictures 
+to remote storage AWS S3 and get picture by provided user name.
+  For use this application you can try this:
 
 Just clone this repository 
 https://github.com/Vasiliy77745/diploma.git  on your computer
