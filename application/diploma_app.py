@@ -47,9 +47,9 @@ def get(username):
         )
     except botocore.exceptions.ClientError as err:
         if err.response['Error']['Code'] == 'NoSuchKey':
-            return 'Username not found', 404
+            return json.dumps({'status': 'error', 'message':'Username not found'}), 404
         logging.error(err)
-        return 'File get error', 500
+        return json.dumps({'status': 'error', 'message':'File get error'}), 500
     else:
         content = picture['Body'].read()
         response = make_response(content)
