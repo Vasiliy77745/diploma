@@ -4,7 +4,7 @@ pipeline {
     agent { 
         label 'master'
         }
-    triggers { pollSCM('*/15 * * * *') }
+    triggers { pollSCM('* * * * *') }
     options {
         timestamps()
     }
