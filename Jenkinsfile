@@ -17,21 +17,21 @@ pipeline {
         stage("docker build") {
             steps {
                 script {
-                    dir("${pwd()}/application") {
-                        docker.withRegistry('https://registry.hub.docker.com','docker_hub_alexv77745') {                            
-                            def sha = env.GIT_COMMIT.substring(0,8)
-                            tag = "${env.GIT_BRANCH}-${sha}"
-                            image = docker.build( "alexv77745/diploma:${tag}")
-                        }
+                    dir("${pwd()}/application") {                       
+                        def sha = env.GIT_COMMIT.substring(0,8)
+                        tag = "${env.GIT_BRANCH}-${sha}"
+                        image = docker.build( "alexv77745/diploma:${tag}")
                     }
                 }
             }
         }    
         stage("docker push") {
             steps {
-                script {                      
-                    image.push()
-                    image.push('latest')
+                script {  
+                    docker.withRegistry('https://registry.hub.docker.com','docker_hub_alexv77745') {                    
+                        image.push()
+                        image.push('latest')
+                    }
                 }
             }
         } 

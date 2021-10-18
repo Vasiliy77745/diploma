@@ -10,6 +10,7 @@ import botocore
 APP = Flask(__name__)
 BUCKET = os.environ['AWS_S3_BUCKET']
 S3 = boto3.client('s3')
+S3_RES = boto3.resource('s3')
 ALLOWED_TYPES = ['image/jpeg', 'image/x-png', 'image/png', 'image/gif']
 SIZE_LIMIT = 5 * 1024 * 1024
 
@@ -84,6 +85,11 @@ def healthcheck():
             Fileobj=io.BytesIO(str.encode('testfile')),
             Bucket=BUCKET,
             Key='testfile'
+        )
+        #S3_RES.Object(bucket_name=BUCKET, key='testfile').wait_until_exists()
+        S3.delete_object(
+            Bucket=BUCKET,
+            Key='testfile',
         )
     except botocore.exceptions.ClientError as err:
         logging.error(err)
